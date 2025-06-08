@@ -8,9 +8,10 @@ import pyjokes
 import google.generativeai as genai
 
 Name = "Ai Assistant" # Enter  the name for this AI Assistant
-
+search_engine = "duckduckgo"
 # genai configuration
-API_KEY = "YOUR-API-KEY" # Enter your API KEY here if the api key is not provided it'll search it on google
+# Enter your API KEY here if the api key if not then leave as is it'll search it on google
+API_KEY = "YOUR-API-KEY"
 genai.configure(api_key={API_KEY})
 model = genai.GenerativeModel('gemini')
 chat = model.start_chat(history=[])
@@ -20,13 +21,13 @@ engine = pyttsx3.init('sapi5')
 voice = engine.getProperty('voices')
 engine.setProperty('voice', voice)
 
-
+# Converts text to speech
 def speak(audio):
     engine.say(audio)
     print(f"{Name}: ",audio)
     engine.runAndWait()
 
-
+# Wishes Good Morning, Afternoon, Evening according to time
 def wishme():
     hour = int(datetime.datetime.now().hour)
     if 0 <= hour < 12:
@@ -37,7 +38,7 @@ def wishme():
         speak("Good Evening!")
     speak(f"I am your {Name}. How may I help you today?")
 
-
+# Converts Speech to Text
 def take_command():
     r = speech_recognition.Recognizer()
     with speech_recognition.Microphone() as source:
@@ -50,12 +51,12 @@ def take_command():
         print(f"User said: {query}")
     except Exception:
         return "None"
-    return query
+    return query.lower()
 
-def main():
-    wishme()
+# Actions based on the query
+def actions():
     while True:
-        query = take_command().lower()
+        query = take_command()
         # Logic for executing tasks based on query
         if 'wikipedia' in query:
             speak('Searching Wikipedia')
@@ -64,10 +65,10 @@ def main():
             speak("According to Wikipedia", results)
 
         elif 'search' in query:
-            speak("I found this on google")
+            speak(f"I found this on {search_engine}")
             query = query.replace("search", "")
-            query = query.replace("google", "")
-            webbrowser.open("google.com/search?q=" + query)
+            query = query.replace(search_engine, "")
+            webbrowser.open(f"{search_engine}.com/search?q=" + query)
 
         elif 'open chat gpt' in query:
             speak("opening Chat GPT")
@@ -88,7 +89,7 @@ def main():
 
         elif 'open browser' in query:
             speak("opening browser")
-            webbrowser.open("https://duckduckgo.com")
+            webbrowser.open(f"https://{search_engine}.com")
 
         elif 'open chat gpt' in query:
             speak("opening Chat GPT")
@@ -102,37 +103,29 @@ def main():
             srtTime = datetime.datetime.now().strftime("%H:%M:%S")
             speak(f"the time is {srtTime}")
 
-
+        # opens a program with startfile and cmd as reqired
         elif 'open' in query:
-            action = query.replace("open", "").strip()
-            
-            # Check if trying to open a specific application
-            common_apps = {
-                "python": "python",
-                "cmd": "cmd",
-                "command prompt": "cmd",
-                "terminal": "cmd"
-            }
-            
-            if action in common_apps:
-                # Use command prompt for specific tools that need it
+            app_name = query.replace("open", "").strip()
+            common_apps = ["python", "cmd", "command prompt", "py", "pi"]
+            if app_name in common_apps:
                 try:
-                    subprocess.Popen(f"start cmd /k {common_apps[action]}", shell=True)
-                    speak(f"Opening {action}")
+                    subprocess.Popen(f"start cmd /k {app_name}", shell=True)
+                    speak(f"Opening {app_name}")
                 except Exception as e:
                     speak(f"An error occurred: {e}")
             else:
-                # Try to open directly without command prompt
                 try:
-                    # Use startfile for applications or open the program directly
-                    subprocess.Popen(f"start {action}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    speak(f"Opening {action}")
+                    subprocess.Popen(f"start {app_name}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    speak(f"Opening {app_name}")
                 except Exception as e:
                     speak(f"An error occurred: {e}")
 
         elif "exit" in query:
             speak("Roger that!")
             break
+
+        elif query=="none":
+            speak("I couldn't understand that, Please repeat")
 
         else:
             if API_KEY != "YOUR-API-KEY":
@@ -142,12 +135,17 @@ def main():
                 response2 = "\n".join(response1[:7])
                 response3 = response2.replace("*", "")
                 speak(response3)
+                break
             else:
-                speak("I found this on google")
+                speak(f"I found this on {search_engine}")
                 query = query.replace("search", "")
-                query = query.replace("google", "")
-                webbrowser.open("google.com/search?q=" + query)
+                query = query.replace(search_engine, "")
+                webbrowser.open(f"{search_engine}.com/search?q=" + query)
+                break
 
+def main():
+    wishme()
+    actions()
 
 if __name__ == '__main__':
     main()
