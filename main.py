@@ -7,7 +7,7 @@ import wikipedia
 import pyjokes
 import google.generativeai as genai
 
-Name = "Ai Assistant" # Enter  the name for this AI Assistant
+Name = "Voice Assistant" # Enter  the name for this AI Assistant
 search_engine = "duckduckgo"
 # genai configuration
 # Enter your API KEY here if the api key if not then leave as is it'll search it on google
