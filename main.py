@@ -10,7 +10,7 @@ import google.generativeai as genai
 Name = "Ai Assistant" # Enter  the name for this AI Assistant
 
 # genai configuration
-API_KEY = "YOUR-API-KEY"
+API_KEY = "YOUR-API-KEY" # Enter your API KEY here if the api key is not provided it'll search it on google
 genai.configure(api_key={API_KEY})
 model = genai.GenerativeModel('gemini')
 chat = model.start_chat(history=[])
@@ -135,12 +135,19 @@ def main():
             break
 
         else:
-            instruction = "in short"
-            response = str(chat.send_message(query+instruction).text)
-            response1 = response.splitlines()
-            response2 = "\n".join(response1[:7])
-            response3 = response2.replace("*", "")
-            speak(response3)
+            if API_KEY != "YOUR-API-KEY":
+                instruction = "in short"
+                response = str(chat.send_message(query+instruction).text)
+                response1 = response.splitlines()
+                response2 = "\n".join(response1[:7])
+                response3 = response2.replace("*", "")
+                speak(response3)
+            else:
+                speak("I found this on google")
+                query = query.replace("search", "")
+                query = query.replace("google", "")
+                webbrowser.open("google.com/search?q=" + query)
+
 
 if __name__ == '__main__':
     main()
