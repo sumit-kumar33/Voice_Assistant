@@ -9,6 +9,7 @@ import google.generativeai as genai
 
 Name = "Voice Assistant" # Enter  the name for this AI Assistant
 search_engine = "duckduckgo"
+
 # genai configuration
 # Enter your API KEY here if the api key if not then leave as is it'll search it on google
 API_KEY = "YOUR-API-KEY"
@@ -36,7 +37,7 @@ def wishme():
         speak("Good Afternoon!")
     else:
         speak("Good Evening!")
-    speak(f"I am your {Name}. How may I help you today?")
+    speak(f"I am {Name}. How may I help you today?")
 
 # Converts Speech to Text
 def take_command():
@@ -56,7 +57,7 @@ def take_command():
 # Actions based on the query
 def actions():
     while True:
-        query = take_command()
+        query = take_command().lower()
         # Logic for executing tasks based on query
         if 'wikipedia' in query:
             speak('Searching Wikipedia')
@@ -103,7 +104,7 @@ def actions():
             srtTime = datetime.datetime.now().strftime("%H:%M:%S")
             speak(f"the time is {srtTime}")
 
-        # opens a program with startfile and cmd as reqired
+        # Opens a program with startfile and cmd as reqired
         elif 'open' in query:
             app_name = query.replace("open", "").strip()
             common_apps = ["python", "cmd", "command prompt", "py", "pi"]
@@ -124,7 +125,7 @@ def actions():
             speak("Roger that!")
             break
 
-        elif query=="none":
+        elif "none" in query:
             speak("I couldn't understand that, Please repeat")
 
         else:
