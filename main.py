@@ -1,21 +1,21 @@
-import subprocess
 import datetime
 import webbrowser
 import pyttsx3
 import speech_recognition
 import wikipedia
 import pyjokes
-import google.generativeai as genai
+import os
+from google import genai
+from google.genai import types
 
 Name = "Voice Assistant" # Enter  the name for this AI Assistant
 search_engine = "duckduckgo"
 
-# genai configuration
-# Enter your API KEY here if the api key if not then leave as is it'll search it on google
-API_KEY = "YOUR-API-KEY"
-genai.configure(api_key={API_KEY})
-model = genai.GenerativeModel('gemini')
-chat = model.start_chat(history=[])
+# genai configuration it automatically takes "GEMINI-API-KEY" from environment variables
+client = genai.Client()
+config = types.GenerateContentConfig(
+    system_instruction=f"Your name is {Name} and you are a voice assistant.",
+)
 
 # pyttsx3 Configuration 
 engine = pyttsx3.init('sapi5')
@@ -37,7 +37,14 @@ def wishme():
         speak("Good Afternoon!")
     else:
         speak("Good Evening!")
-    speak(f"I am {Name}. How may I help you today?")
+    speak(f"I am {Name}. How may I help you today? You can speak *exit* anytime for me to stop listening")
+
+# Get current date
+def get_current_date():
+    now = datetime.datetime.now()
+    date_string = now.strftime("%B %d, %Y")
+    day_name = now.strftime("%A")
+    return (f"Today is {day_name}, {date_string}")
 
 # Converts Speech to Text
 def take_command():
@@ -49,7 +56,7 @@ def take_command():
     try:
         speak("Recognising")
         query = r.recognize_google(audio, language='en-in')
-        print(f"User said: {query}")
+        print(f"You: {query}")
     except Exception:
         return "None"
     return query.lower()
@@ -59,94 +66,123 @@ def actions():
     while True:
         query = take_command().lower()
         # Logic for executing tasks based on query
+        # Wikipedia search
         if 'wikipedia' in query:
-            speak('Searching Wikipedia')
-            query = query.replace("wikipedia", "")
-            results = wikipedia.summary(query, sentences=2)
-            speak("According to Wikipedia", results)
+            try:
+                speak('Searching Wikipedia')
+                query = query.replace("wikipedia", "").strip()
+                if query:
+                    results = wikipedia.summary(query, sentences=2)
+                    speak(f"According to Wikipedia: {results}")
+                else:
+                    speak("Please specify what you want to search on Wikipedia")
+            except wikipedia.exceptions.DisambiguationError as e:
+                speak(f"Multiple results found. Please be more specific. Options include: {', '.join(e.options[:3])}")
+            except wikipedia.exceptions.PageError:
+                speak("Sorry, I couldn't find any information on that topic")
+            except Exception as e:
+                speak("Sorry, there was an error searching Wikipedia")
 
         elif 'search' in query:
             speak(f"I found this on {search_engine}")
-            query = query.replace("search", "")
-            query = query.replace(search_engine, "")
-            webbrowser.open(f"{search_engine}.com/search?q=" + query)
+            query = query.replace("search", "").replace(search_engine, "").strip()
+            if query:
+                webbrowser.open(f"https://{search_engine}.com/search?q=" + query)
+            else:
+                speak("Please specify what you want to search for")
 
-        elif 'open chat gpt' in query:
-            speak("opening Chat GPT")
-            webbrowser.open("chat.openai.com")
+        # Open ChatGPT
+        elif 'open chat gpt' in query or 'open chatgpt' in query:
+            speak("Opening Chat GPT")
+            webbrowser.open("https://chat.openai.com")
 
+        # Tell a joke
         elif 'joke' in query:
-            jokes = pyjokes.get_joke(language='en', category='neutral')
-            speak(jokes)
+            try:
+                joke = pyjokes.get_joke(language='en', category='neutral')
+                speak(joke)
+            except Exception:
+                speak("Sorry, I couldn't fetch a joke right now")
 
+        # Open YouTube (with rick roll easter egg)
         elif 'open youtube' in query:
-            speak("opening youtube")
-            webbrowser.open("bit.ly/rickoll")
-            speak("I am sorry for this. But my creator want me to rick roll you.")
+            speak("Opening YouTube")
+            webbrowser.open("https://www.youtube.com")
 
+        # Open Google
         elif 'open google' in query:
-            speak("opening google")
-            webbrowser.open("google.com")
+            speak("Opening Google")
+            webbrowser.open("https://google.com")
 
+        # Open default browser
         elif 'open browser' in query:
-            speak("opening browser")
+            speak("Opening browser")
             webbrowser.open(f"https://{search_engine}.com")
 
-        elif 'open chat gpt' in query:
-            speak("opening Chat GPT")
-            webbrowser.open("chat.openai.com")
-
-        elif "music" in query or "song" in query:
-            webbrowser.open("https://spotify.com/")
-            speak("opening spotify")
-
-        elif 'time' in query:
-            srtTime = datetime.datetime.now().strftime("%H:%M:%S")
-            speak(f"the time is {srtTime}")
-
-        # Opens a program with startfile and cmd as reqired
-        elif 'open' in query:
-            app_name = query.replace("open", "").strip()
-            common_apps = ["python", "cmd", "command prompt", "py", "pi"]
-            if app_name in common_apps:
-                try:
-                    subprocess.Popen(f"start cmd /k {app_name}", shell=True)
-                    speak(f"Opening {app_name}")
-                except Exception as e:
-                    speak(f"An error occurred: {e}")
+        # Play music/songs
+        elif "play" in query:
+            query = query.replace("play", "").replace("song", "").replace("music", "").strip()
+            if query:
+                webbrowser.open("https://music.youtube.com/search?q=" + query)
+                speak(f"results for {query} on YouTube Music")
             else:
-                try:
-                    subprocess.Popen(f"start {app_name}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    speak(f"Opening {app_name}")
-                except Exception as e:
-                    speak(f"An error occurred: {e}")
+                webbrowser.open("https://music.youtube.com")
+                speak("Opening YouTube Music")
 
-        elif "exit" in query:
-            speak("Roger that!")
+        # Get current time
+        elif 'time' in query:
+            current_time = datetime.datetime.now().strftime("%I:%M %p")
+            speak(f"The time is {current_time}")
+
+        # Get current date
+        elif 'date' in query or 'today' in query:
+            speak(get_current_date())
+
+        # Exit commands
+        elif "exit" in query or "stop listening" in query or "goodbye" in query:
+            speak("Roger that! Goodbye!")
             break
 
+        # Handle unrecognized input
         elif "none" in query:
             speak("I couldn't understand that, Please repeat")
 
+        # AI-powered responses using Gemini
         else:
-            if API_KEY != "YOUR-API-KEY":
-                instruction = "in short"
-                response = str(chat.send_message(query+instruction).text)
-                response1 = response.splitlines()
-                response2 = "\n".join(response1[:7])
-                response3 = response2.replace("*", "")
-                speak(response3)
-                break
-            else:
-                speak(f"I found this on {search_engine}")
-                query = query.replace("search", "")
-                query = query.replace(search_engine, "")
-                webbrowser.open(f"{search_engine}.com/search?q=" + query)
-                break
+            try:
+                instruction = "Please provide a brief and helpful response."
+                response = client.models.generate_content(
+                    model="gemini-2.0-flash-exp",
+                    config=config,
+                    contents=query + instruction
+                )
+                if response and response.text:
+                    # Clean up response text
+                    cleaned_response = response.text.replace("*", "").replace("#", "").strip()
+                    # Limit response length for speech
+                    if len(cleaned_response) > 300:
+                        cleaned_response = cleaned_response[:300] + "..."
+                    speak(cleaned_response)
+                else:
+                    speak("I'm sorry, I couldn't generate a response for that")
+            except Exception as e:
+                speak("Sorry, I'm having trouble connecting to my AI service right now")
+                print(f"Gemini API error: {e}")
 
 def main():
-    wishme()
-    actions()
+    # Check if API key is set
+    if not os.getenv('GEMINI_API_KEY'):
+        print("Warning: GEMINI_API_KEY environment variable not found!")
+        print("Please set your Gemini API key as an environment variable.")
+        return
+    try:
+        wishme()
+        actions()
+    except KeyboardInterrupt:
+        speak("Goodbye!")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        speak("An unexpected error occurred. Shutting down.")
 
 if __name__ == '__main__':
     main()
