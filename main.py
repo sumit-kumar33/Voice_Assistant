@@ -1,5 +1,6 @@
 import datetime
 import webbrowser
+import urllib.parse
 import pyttsx3
 import speech_recognition
 import wikipedia
@@ -52,13 +53,13 @@ def take_command():
     with speech_recognition.Microphone() as source:
         speak("Listening")
         r.pause_threshold = 1
-        audio = r.listen(source)
+        audio = r.listen(source, timeout=5, phrase_time_limit=8)
     try:
         speak("Recognising")
         query = r.recognize_google(audio, language='en-in')
         print(f"You: {query}")
     except Exception:
-        return "None"
+        return None
     return query.lower()
 
 # Actions based on the query
@@ -67,7 +68,10 @@ def actions():
         query = take_command().lower()
         # Logic for executing tasks based on query
         # Wikipedia search
-        if 'wikipedia' in query:
+        if not query:
+            continue
+        # Wikipedia search
+        elif 'wikipedia' in query:
             try:
                 speak('Searching Wikipedia')
                 query = query.replace("wikipedia", "").strip()
@@ -83,11 +87,12 @@ def actions():
             except Exception as e:
                 speak("Sorry, there was an error searching Wikipedia")
 
+        # Search on preffered search_engine
         elif 'search' in query:
             speak(f"I found this on {search_engine}")
             query = query.replace("search", "").replace(search_engine, "").strip()
             if query:
-                webbrowser.open(f"https://{search_engine}.com/search?q=" + query)
+                webbrowser.open(f"https://{search_engine}.com/search?q=" + urllib.parse.quote_plus(query))
             else:
                 speak("Please specify what you want to search for")
 
@@ -120,10 +125,10 @@ def actions():
             webbrowser.open(f"https://{search_engine}.com")
 
         # Play music/songs
-        elif "play" in query:
+        elif query.startswith("play"):
             query = query.replace("play", "").replace("song", "").replace("music", "").strip()
             if query:
-                webbrowser.open("https://music.youtube.com/search?q=" + query)
+                webbrowser.open("https://music.youtube.com/search?q=" + urllib.parse.quote_plus(query))
                 speak(f"results for {query} on YouTube Music")
             else:
                 webbrowser.open("https://music.youtube.com")
@@ -173,7 +178,7 @@ def main():
     # Check if API key is set
     if not os.getenv('GEMINI_API_KEY'):
         print("Warning: GEMINI_API_KEY environment variable not found!")
-        print("Please set your Gemini API key as an environment variable.")
+        print("Please set your Gemini API key as GEMINI_API_KEY environment variable.")
         return
     try:
         wishme()
