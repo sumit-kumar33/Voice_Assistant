@@ -6,11 +6,32 @@ import speech_recognition
 import wikipedia
 import pyjokes
 import os
+import logging
 from google import genai
 from google.genai import types
 
 Name = "Voice Assistant" # Enter  the name for this AI Assistant
 search_engine = "duckduckgo"
+
+# Logging Configuration
+LOG_FILE = "Voice Assistant.log"
+LOG_LEVEL = logging.INFO
+
+logger = logging.getLogger(__name__)
+logger.setLevel(LOG_LEVEL)
+
+file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
+file_handler.setLevel(LOG_LEVEL)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(LOG_LEVEL)
+
+formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 # genai configuration it automatically takes "GEMINI-API-KEY" from environment variables
 client = genai.Client()
@@ -20,13 +41,18 @@ config = types.GenerateContentConfig(
 
 # pyttsx3 Configuration 
 engine = pyttsx3.init('sapi5')
-voice = engine.getProperty('voices')
-engine.setProperty('voice', voice)
+voices = engine.getProperty('voices')
+try:
+    if voices:
+        # set to first available voice id (safe)
+       engine.setProperty('voice', voices[0].id)
+except Exception as e:
+    logger.warning("Failed to set TTS voice property: %s", e)
 
 # Converts text to speech
 def speak(audio):
+    logger.info(f"{Name}: {audio}")
     engine.say(audio)
-    print(f"{Name}: ",audio)
     engine.runAndWait()
 
 # Wishes Good Morning, Afternoon, Evening according to time
@@ -53,11 +79,11 @@ def take_command():
     with speech_recognition.Microphone() as source:
         speak("Listening")
         r.pause_threshold = 1
-        audio = r.listen(source, timeout=5, phrase_time_limit=8)
+        audio = r.listen(source)
     try:
         speak("Recognising")
         query = r.recognize_google(audio, language='en-in')
-        print(f"You: {query}")
+        logger.info(f"You: {query}")
     except Exception:
         return None
     return query.lower()
@@ -65,10 +91,11 @@ def take_command():
 # Actions based on the query
 def actions():
     while True:
-        query = take_command().lower()
+        query = take_command()
         # Logic for executing tasks based on query
         # Wikipedia search
         if not query:
+            speak("I couldn't understand that, Please repeat")
             continue
         # Wikipedia search
         elif 'wikipedia' in query:
@@ -148,10 +175,6 @@ def actions():
             speak("Roger that! Goodbye!")
             break
 
-        # Handle unrecognized input
-        elif "none" in query:
-            speak("I couldn't understand that, Please repeat")
-
         # AI-powered responses using Gemini
         else:
             try:
@@ -172,21 +195,20 @@ def actions():
                     speak("I'm sorry, I couldn't generate a response for that")
             except Exception as e:
                 speak("Sorry, I'm having trouble connecting to my AI service right now")
-                print(f"Gemini API error: {e}")
+                logger.exception(f"Gemini API error: {e}")
 
 def main():
     # Check if API key is set
     if not os.getenv('GEMINI_API_KEY'):
-        print("Warning: GEMINI_API_KEY environment variable not found!")
-        print("Please set your Gemini API key as GEMINI_API_KEY environment variable.")
-        return
+        logger.warning("Warning: GEMINI_API_KEY environment variable not found!")
+        logger.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't be able to use features that rely on Gemini.")
     try:
         wishme()
         actions()
     except KeyboardInterrupt:
         speak("Goodbye!")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logger.exception(f"An unexpected error occurred: {e}")
         speak("An unexpected error occurred. Shutting down.")
 
 if __name__ == '__main__':
