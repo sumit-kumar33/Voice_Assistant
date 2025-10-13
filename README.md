@@ -122,7 +122,7 @@ Edit the top of [main.py](main.py):
   - `wikipedia` — fetch summaries
   - `pyjokes` — jokes
 - AI:
-  - `google.generativeai` — Gemini client (requires `GEMINI_API_KEY`)
+  - `google-genai` — Gemini client (requires `GEMINI_API_KEY`)
 
 ## Where to look in the code
 
