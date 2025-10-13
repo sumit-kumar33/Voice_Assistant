@@ -82,9 +82,11 @@ Edit the top of [main.py](main.py):
 ## Cross-OS limitations and notes
 
 - Text-to-speech backend:
-  - The code calls `pyttsx3.init('sapi5')` which is Windows-specific. On macOS use `'nsss'`, and on many Linux systems use `'espeak'`. Change the backend in [main.py](main.py) if not on Windows.
+  - The code calls `pyttsx3.init('sapi5')` which is Windows-specific. On macOS use `'nsss'`, on many Linux systems use `'espeak'`. If you run on a non-Windows OS, change the backend when initializing the engine in [`main.py`](main.py).
+- Voice selection:
+  - `engine.getProperty('voices')` returns a list; setting `engine.setProperty('voice', voice)` may be incorrect if `voice` is the list. Behavior differs by OS and available voice engines.
 - PyAudio / microphone:
-  - PyAudio depends on system PortAudio libs. Install system packages first:
+  - PyAudio needs system PortAudio libs. Install system packages first:
     - Debian/Ubuntu: `sudo apt-get install portaudio19-dev python3-dev`
     - macOS: `brew install portaudio`
     - Windows: prefer installing a PyAudio wheel if pip fails.
@@ -111,16 +113,16 @@ Edit the top of [main.py](main.py):
 
 ## Technologies
 
-- Python standard library: `datetime`, `webbrowser`, `urllib.parse`, `os`, `logging`
+- Python standard library: `datetime`, `webbrowser`, `urllib.parse`, `os`
 - Speech and audio:
-  - `speechrecognition` — speech-to-text (Google Web Speech)
+  - `speechrecognition` — speech-to-text
   - `pyaudio` — microphone input (PortAudio)
   - `pyttsx3` — text-to-speech
 - Online knowledge & jokes:
   - `wikipedia` — fetch summaries
   - `pyjokes` — jokes
 - AI:
-  - `google-genai` — Gemini client (requires `GEMINI_API_KEY`)
+  - `google.generativeai` — Gemini client (requires `GEMINI_API_KEY`)
 
 ## Where to look in the code
 
@@ -132,7 +134,10 @@ Edit the top of [main.py](main.py):
 
 ## Limitations
 
-- TTS backend and voices are OS-dependent and may require manual backend selection.
-- Requires network connectivity for speech recognition (Google) and Gemini API calls.
-- Real-time performance depends on mic quality, network latency, and Gemini response time.
-- The selected Gemini model (`gemini-2.0-flash-exp`) may change availability; update in [main.py](main.py) if needed.
+- Backend-specific TTS initialization and voice handling cause OS-specific bugs.
+- Requires network connectivity for both speech recognition (Google) and Gemini API calls.
+- Real-time performance depends on microphone quality, network latency, and Gemini response time.
+- Not hardened for production: limited error handling and concurrency; running long sessions may surface unhandled exceptions.
+- Possible costs from Gemini usage depending on your account and model.
+
+For code details, inspect [main.py](main.py) and the dependency list in [requirements.txt](requirements.txt).
