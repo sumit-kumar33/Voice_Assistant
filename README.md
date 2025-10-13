@@ -30,7 +30,7 @@ This repository contains a simple Python voice assistant that uses the Gemini AP
 - Python 3.8+
 - System audio (microphone + speakers)
 - Optional but recommended: `GEMINI_API_KEY`
-  - If missing, the assistant runs but AI answers will be unavailable. A warning is logged.
+  - If missing, the assistant runs but AI answers will be unavailable and the query will be searched in the specified search engine and A warning is logged.
 - Install Python deps:
 
 ```sh
