@@ -176,22 +176,31 @@ def actions():
 
         # AI-powered responses using Gemini
         else:
-            try:
-                instruction = "Please provide a brief and helpful response."
-                response = client.models.generate_content(
-                    model="gemini-2.0-flash-exp",
-                    config=config,
-                    contents=query + instruction
-                )
-                if response and response.text:
-                    # Clean up response text
-                    cleaned_response = response.text.replace("*", "").replace("#", "").strip()
-                    speak(cleaned_response)
-                else:
-                    speak("I'm sorry, I couldn't generate a response for that")
-            except Exception as e:
-                speak("Sorry, I'm having trouble connecting to my AI service right now")
-                logging.exception(f"Gemini API error: {e}")
+            # Check if API key is set
+            if os.getenv('GEMINI_API_KEY'):
+                try:
+                    instruction = "Please provide a brief and helpful response."
+                    response = client.models.generate_content(
+                        model="gemini-2.0-flash-exp",
+                        config=config,
+                        contents=query + instruction
+                    )
+                    if response and response.text:
+                        # Clean up response text
+                        cleaned_response = response.text.replace("*", "").replace("#", "").strip()
+                        speak(cleaned_response)
+                    else:
+                        speak("I'm sorry, I couldn't generate a response for that")
+                except Exception as e:
+                    speak("Sorry, I'm having trouble connecting to my AI service right now")
+                    logging.exception(f"Gemini API error: {e}")
+            else:
+                speak(f"I found this on {search_engine}")
+                query = query.replace("search", "").replace(search_engine, "").strip()
+                webbrowser.open(f"https://{search_engine}.com/search?q=" + urllib.parse.quote_plus(query))
+                logging.warning("Warning: GEMINI_API_KEY environment variable not found!")
+                logging.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't be able to use features that rely on Gemini.")
+                
 
 def main():
     logging.info("=" * 50)
@@ -201,10 +210,6 @@ def main():
     messages.info("=" * 50)
     messages.info(f"{Name} is startiing")
     messages.info("=" * 50)
-    # Check if API key is set
-    if not os.getenv('GEMINI_API_KEY'):
-        logging.warning("Warning: GEMINI_API_KEY environment variable not found!")
-        logging.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't be able to use features that rely on Gemini.")
     try:
         wishme()
         actions()
