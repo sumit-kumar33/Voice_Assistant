@@ -14,29 +14,27 @@ Name = "Voice Assistant" # Enter  the name for this AI Assistant
 search_engine = "duckduckgo"
 
 # Logging Configuration
-LOG_FILE = "Voice Assistant.log"
-LOG_LEVEL = logging.INFO
 
-logger = logging.getLogger(__name__)
-logger.setLevel(LOG_LEVEL)
+logging.basicConfig(
+    level=logging.INFO,
+    filename=f"{Name}.log",
+    format='%(asctime)s %(levelname)s: %(message)s'
+    )
 
-file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
-file_handler.setLevel(LOG_LEVEL)
+messages = logging.getLogger(__name__)
 
+handler = logging.FileHandler(f"{Name} messages.log")
+formatter = logging.Formatter("%(asctime)s: %(message)s")
 console_handler = logging.StreamHandler()
-console_handler.setLevel(LOG_LEVEL)
 
-formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
-
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+handler.setFormatter(formatter)
+messages.addHandler(handler)
+messages.addHandler(console_handler)
 
 # genai configuration it automatically takes "GEMINI-API-KEY" from environment variables
 client = genai.Client()
 config = types.GenerateContentConfig(
-    system_instruction=f"Your name is {Name} and you are a voice assistant.",
+    system_instruction=f"Your name is {Name} and you are a voice assistant. Try to keep responses within 300 characters.",
 )
 
 # pyttsx3 Configuration 
@@ -47,11 +45,11 @@ try:
         # set to first available voice id (safe)
        engine.setProperty('voice', voices[0].id)
 except Exception as e:
-    logger.warning("Failed to set TTS voice property: %s", e)
+    logging.exception("Failed to set TTS voice property")
 
 # Converts text to speech
 def speak(audio):
-    logger.info(f"{Name}: {audio}")
+    messages.info(f"{Name}: {audio}")
     engine.say(audio)
     engine.runAndWait()
 
@@ -78,13 +76,14 @@ def take_command():
     r = speech_recognition.Recognizer()
     with speech_recognition.Microphone() as source:
         speak("Listening")
-        r.pause_threshold = 1
+        r.pause_threshold = 1.5
         audio = r.listen(source)
     try:
         speak("Recognising")
         query = r.recognize_google(audio, language='en-in')
-        logger.info(f"You: {query}")
+        messages.info(f"You: {query}")
     except Exception:
+        logging.exception("Failed to run take_command() function")
         return None
     return query.lower()
 
@@ -187,28 +186,32 @@ def actions():
                 if response and response.text:
                     # Clean up response text
                     cleaned_response = response.text.replace("*", "").replace("#", "").strip()
-                    # Limit response length for speech
-                    if len(cleaned_response) > 300:
-                        cleaned_response = cleaned_response[:300] + "..."
                     speak(cleaned_response)
                 else:
                     speak("I'm sorry, I couldn't generate a response for that")
             except Exception as e:
                 speak("Sorry, I'm having trouble connecting to my AI service right now")
-                logger.exception(f"Gemini API error: {e}")
+                logging.exception(f"Gemini API error: {e}")
 
 def main():
+    logging.info("=" * 50)
+    logging.info(f"{Name} is startiing")
+    logging.info("=" * 50)
+
+    messages.info("=" * 50)
+    messages.info(f"{Name} is startiing")
+    messages.info("=" * 50)
     # Check if API key is set
     if not os.getenv('GEMINI_API_KEY'):
-        logger.warning("Warning: GEMINI_API_KEY environment variable not found!")
-        logger.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't be able to use features that rely on Gemini.")
+        logging.warning("Warning: GEMINI_API_KEY environment variable not found!")
+        logging.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't be able to use features that rely on Gemini.")
     try:
         wishme()
         actions()
     except KeyboardInterrupt:
         speak("Goodbye!")
     except Exception as e:
-        logger.exception(f"An unexpected error occurred: {e}")
+        logging.exception(f"An unexpected error occurred: {e}")
         speak("An unexpected error occurred. Shutting down.")
 
 if __name__ == '__main__':
