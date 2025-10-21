@@ -4,15 +4,11 @@ from actions import actions
 from speak import speak
 
 def main():
-    logging.info("=" * 50)
-    logging.info(f"{Name} is startiing")
-    logging.info("=" * 50)
+    logging.info("=" * 50 + f"{Name} is starting" + "=" * 50)
 
-    messages.info("=" * 50)
-    messages.info(f"{Name} is startiing")
-    messages.info("=" * 50)
+    messages.info("=" * 50 + f"{Name} is starting" + "=" * 50)
     try:
-        wishme()
+        speak(wishme())
         actions()
     except KeyboardInterrupt:
         speak("Goodbye!")
