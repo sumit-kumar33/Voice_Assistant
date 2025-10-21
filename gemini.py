@@ -21,9 +21,9 @@ def gemini(query):
         if response and response.text:
             # Clean up response text
             cleaned_response = response.text.replace("*", "").replace("#", "").strip()
-            speak(cleaned_response)
+            return cleaned_response
         else:
-            speak("I'm sorry, I couldn't generate a response for that")
+            return "Could not get a valid response from Gemini."
     except Exception as e:
-        speak("Sorry, I'm having trouble connecting to my AI service right now")
         logging.exception(f"Gemini API error: {e}")
+        return "Trouble connecting to Gemini API"
