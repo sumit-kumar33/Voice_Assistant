@@ -105,6 +105,23 @@ def take_command() -> str | None:
     messages.info(f"You: {query.lower()}")
     return query.lower()
 
+def wikipedia_search(query: str) -> str:
+    try:
+        speak('Searching Wikipedia')
+        query = query.replace("wikipedia", "").strip()
+        if query:
+            results = wikipedia.summary(query, sentences=2)
+            return f"According to Wikipedia: {results}"
+        else:
+            return "Please specify what you want to search on Wikipedia"
+    except wikipedia.exceptions.DisambiguationError as e:
+        return f"Multiple results found. Please be more specific. Options include: {', '.join(e.options[:3])}"
+    except wikipedia.exceptions.PageError:
+        return "Sorry, I couldn't find any information on that topic"
+    except Exception as e:
+        logging.exception(f"Wikipedia search error: {e}")
+        return "Sorry, there was an error searching Wikipedia"
+
 # Actions based on the query
 def actions() -> None:
     while True:
@@ -117,20 +134,7 @@ def actions() -> None:
 
         # Wikipedia search
         elif 'wikipedia' in query:
-            try:
-                speak('Searching Wikipedia')
-                query = query.replace("wikipedia", "").strip()
-                if query:
-                    results = wikipedia.summary(query, sentences=2)
-                    speak(f"According to Wikipedia: {results}")
-                else:
-                    speak("Please specify what you want to search on Wikipedia")
-            except wikipedia.exceptions.DisambiguationError as e:
-                speak(f"Multiple results found. Please be more specific. Options include: {', '.join(e.options[:3])}")
-            except wikipedia.exceptions.PageError:
-                speak("Sorry, I couldn't find any information on that topic")
-            except Exception as e:
-                speak("Sorry, there was an error searching Wikipedia")
+            speak(wikipedia_search(query))
 
         # Search on preffered search_engine
         elif 'search' in query:
