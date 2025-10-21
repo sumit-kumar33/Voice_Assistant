@@ -11,17 +11,16 @@ from google import genai
 from google.genai import types
 
 Name = "Voice Assistant" # Enter  the name for this AI Assistant
-search_engine = "duckduckgo"
+search_engine = "duckduckgo" # Enter your preferred search engine here (e.g., google, duckduckgo, bing)
 
-# Logging Configuration
-
+# Logs Configuration
 logging.basicConfig(
     level=logging.INFO,
     filename=f"{Name}.log",
     format='%(asctime)s %(levelname)s: %(message)s'
     )
 
-messages = logging.getLogger(__name__)
+messages: logging.Logger = logging.getLogger(__name__)
 
 handler = logging.FileHandler(f"{Name} messages.log")
 formatter = logging.Formatter("%(asctime)s: %(message)s")
@@ -31,11 +30,29 @@ handler.setFormatter(formatter)
 messages.addHandler(handler)
 messages.addHandler(console_handler)
 
-# genai configuration it automatically takes "GEMINI-API-KEY" from environment variables
-client = genai.Client()
-config = types.GenerateContentConfig(
-    system_instruction=f"Your name is {Name} and you are a voice assistant. Try to keep responses within 300 characters.",
-)
+# Gemini API call function
+def gemini(query: str)  -> str:
+    # genai configuration it automatically takes "GEMINI-API-KEY" from environment variables
+    client = genai.Client()
+    config = types.GenerateContentConfig(
+        system_instruction=f"Your name is {Name} and you are a voice assistant. Try to keep responses within 300 characters.",
+    )
+    try:
+        instruction = "Please provide a brief and helpful response."
+        response: types.GenerateContentResponse = client.models.generate_content(
+            model="gemini-2.0-flash-exp",
+            config=config,
+            contents=query + instruction
+        )
+        if response and response.text:
+            # Clean up response text
+            cleaned_response: str = response.text.replace("*", "").replace("#", "").strip()
+            return cleaned_response
+        else:
+            return "I'm sorry, I couldn't generate a response for that"
+    except Exception as e:
+        logging.exception(f"Gemini API error: {e}")
+        return "Sorry, I'm having trouble connecting to google"
 
 # pyttsx3 Configuration 
 engine = pyttsx3.init('sapi5')
@@ -48,31 +65,31 @@ except Exception as e:
     logging.exception("Failed to set TTS voice property")
 
 # Converts text to speech
-def speak(audio):
+def speak(audio) -> None:
     messages.info(f"{Name}: {audio}")
     engine.say(audio)
     engine.runAndWait()
 
 # Wishes Good Morning, Afternoon, Evening according to time
-def wishme():
+def wishme() -> str:
     hour = int(datetime.datetime.now().hour)
     if 0 <= hour < 12:
-        speak("Good Morning!")
+        salutation = "Good Morning!"
     elif 12 <= hour < 18:
-        speak("Good Afternoon!")
+        salutation = "Good Afternoon!"
     else:
-        speak("Good Evening!")
-    speak(f"I am {Name}. How may I help you today? You can speak *exit* anytime for me to stop listening")
+        salutation = "Good Evening!"
+    return f"{salutation}\n I am {Name}. How may I help you today? You can speak *exit* anytime for me to stop listening"
 
 # Get current date
-def get_current_date():
-    now = datetime.datetime.now()
-    date_string = now.strftime("%B %d, %Y")
-    day_name = now.strftime("%A")
+def get_current_date() -> str:
+    now: datetime.datetime = datetime.datetime.now()
+    date_string: str = now.strftime("%B %d, %Y")
+    day_name: str = now.strftime("%A")
     return (f"Today is {day_name}, {date_string}")
 
 # Converts Speech to Text
-def take_command():
+def take_command() -> str | None:
     r = speech_recognition.Recognizer()
     with speech_recognition.Microphone() as source:
         speak("Listening")
@@ -80,22 +97,24 @@ def take_command():
         audio = r.listen(source)
     try:
         speak("Recognising")
-        query = r.recognize_google(audio, language='en-in')
-        messages.info(f"You: {query}")
-    except Exception:
-        logging.exception("Failed to run take_command() function")
+        query = r.recognize_google(audio, language='en-in')  # type: ignore
+    except Exception as e:
+        logging.exception(f"Failed to run take_command() function : {e}")
+        messages.info(f"You: None")
         return None
+    messages.info(f"You: {query.lower()}")
     return query.lower()
 
 # Actions based on the query
-def actions():
+def actions() -> None:
     while True:
-        query = take_command()
-        # Logic for executing tasks based on query
-        # Wikipedia search
+        query: str | None = take_command()
+
+        # Check if query is None
         if not query:
             speak("I couldn't understand that, Please repeat")
             continue
+
         # Wikipedia search
         elif 'wikipedia' in query:
             try:
@@ -130,7 +149,7 @@ def actions():
         # Tell a joke
         elif 'joke' in query:
             try:
-                joke = pyjokes.get_joke(language='en', category='neutral')
+                joke: str = pyjokes.get_joke(language='en', category='neutral')
                 speak(joke)
             except Exception:
                 speak("Sorry, I couldn't fetch a joke right now")
@@ -162,7 +181,7 @@ def actions():
 
         # Get current time
         elif 'time' in query:
-            current_time = datetime.datetime.now().strftime("%I:%M %p")
+            current_time: str = datetime.datetime.now().strftime("%I:%M %p")
             speak(f"The time is {current_time}")
 
         # Get current date
@@ -178,40 +197,25 @@ def actions():
         else:
             # Check if API key is set
             if os.getenv('GEMINI_API_KEY'):
-                try:
-                    instruction = "Please provide a brief and helpful response."
-                    response = client.models.generate_content(
-                        model="gemini-2.0-flash-exp",
-                        config=config,
-                        contents=query + instruction
-                    )
-                    if response and response.text:
-                        # Clean up response text
-                        cleaned_response = response.text.replace("*", "").replace("#", "").strip()
-                        speak(cleaned_response)
-                    else:
-                        speak("I'm sorry, I couldn't generate a response for that")
-                except Exception as e:
-                    speak("Sorry, I'm having trouble connecting to my AI service right now")
-                    logging.exception(f"Gemini API error: {e}")
+                speak(gemini(query))
             else:
                 speak(f"I found this on {search_engine}")
                 query = query.replace("search", "").replace(search_engine, "").strip()
                 webbrowser.open(f"https://{search_engine}.com/search?q=" + urllib.parse.quote_plus(query))
                 logging.warning("Warning: GEMINI_API_KEY environment variable not found!")
-                logging.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't be able to use features that rely on Gemini.")
+                logging.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't get AI responses.")
                 
 
-def main():
+def main() -> None:
     logging.info("=" * 50)
-    logging.info(f"{Name} is startiing")
+    logging.info(f"{Name} is starting")
     logging.info("=" * 50)
 
     messages.info("=" * 50)
-    messages.info(f"{Name} is startiing")
+    messages.info(f"{Name} is starting")
     messages.info("=" * 50)
     try:
-        wishme()
+        speak(wishme())
         actions()
     except KeyboardInterrupt:
         speak("Goodbye!")
