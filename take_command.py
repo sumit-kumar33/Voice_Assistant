@@ -10,8 +10,9 @@ def take_command():
     try:
         speak("Recognising")
         query = r.recognize_google(audio, language='en-in') # pyright: ignore[reportAttributeAccessIssue]
-        messages.info(f"You: {query}")
     except Exception:
         logging.exception("Failed to run take_command() function")
+        messages.info(f"You: None")
         return None
+    messages.info(f"You: {query.lower()}")
     return query.lower()
