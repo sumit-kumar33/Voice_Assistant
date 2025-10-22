@@ -5,6 +5,7 @@ from take_command import take_command
 from get_current_date import get_current_date
 from gemini import gemini
 from search import search
+from wikipedia_search import wikipedia_search
 import webbrowser
 import os
 import pyjokes
@@ -51,20 +52,7 @@ def actions():
             continue
         # Wikipedia search
         elif 'wikipedia' in query:
-            try:
-                speak('Searching Wikipedia')
-                query = query.replace("wikipedia", "").strip()
-                if query:
-                    results = wikipedia.summary(query, sentences=2)
-                    speak(f"According to Wikipedia: {results}")
-                else:
-                    speak("Please specify what you want to search on Wikipedia")
-            except wikipedia.exceptions.DisambiguationError as e:
-                speak(f"Multiple results found. Please be more specific. Options include: {', '.join(e.options[:3])}")
-            except wikipedia.exceptions.PageError:
-                speak("Sorry, I couldn't find any information on that topic")
-            except Exception as e:
-                speak("Sorry, there was an error searching Wikipedia")
+            speak(wikipedia_search(query))
 
         # Search on preffered search_engine
         elif 'search' in query:
