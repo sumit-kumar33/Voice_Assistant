@@ -1,5 +1,5 @@
 import logging
-from config import *
+from config_files.config import *
 
 # Logging Configuration
 logging.basicConfig(

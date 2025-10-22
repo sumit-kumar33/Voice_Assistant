@@ -1,8 +1,7 @@
 from google import genai
-from config import *
 from google.genai import types
-from speak import speak
-from logs_config import *
+from config_files.config import Name
+from config_files.logs_config import *
 
 # Gemini API call function
 def gemini(query: str) -> str:

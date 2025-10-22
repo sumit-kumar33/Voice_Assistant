@@ -1,6 +1,6 @@
 import speech_recognition
-from logs_config import *
-from speak import *
+from config_files.logs_config import *
+from speech.speak import *
 def take_command():
     r = speech_recognition.Recognizer()
     with speech_recognition.Microphone() as source:

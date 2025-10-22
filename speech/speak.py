@@ -1,5 +1,5 @@
-from config import *
-from logs_config import *
+from config_files.config import *
+from config_files.logs_config import *
 import pyttsx3
 
 # pyttsx3 Configuration 

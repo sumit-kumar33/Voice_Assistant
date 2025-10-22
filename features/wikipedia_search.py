@@ -1,4 +1,4 @@
-import logging
+from config_files.logs_config import *
 import wikipedia
 
 def wikipedia_search(query: str) -> str:

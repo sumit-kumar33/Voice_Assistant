@@ -1,5 +1,5 @@
 import datetime
-from config import *
+from config_files.config import Name
 # Wishes Good Morning, Afternoon, Evening according to time
 def wishme():
     hour = int(datetime.datetime.now().hour)

@@ -1,6 +1,6 @@
 import webbrowser
 import urllib.parse
-from config import search_engine
+from config_files.config import search_engine
 def search(query):
     query = query.replace("search", "").replace(search_engine, "").strip()
     if query:
