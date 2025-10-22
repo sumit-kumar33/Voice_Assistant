@@ -14,60 +14,43 @@ import datetime
 
 #TODO: Refactor this function and make a dictionary mapping commands to functions for better scalability
 
-def get_text_command():
-    try:
-        return input("Type your command: ").strip().lower()
-    except EOFError:
-        return None
-
-def actions():
-    use_voice = True
-    try:
-        if use_voice:
-            query = take_command()
-            if not query:
-                return "I couldn't understand that, Please repeat or press Ctrl+C to type."
-        else:
-            try:
-                query = get_text_command()
-                if query == "voice":
-                    use_voice = True
-                    return "Switching to voice mode. You can speak your command now. Press Ctrl+C to return to typing mode."
-                elif not query:
-                    return "No input received. Please try again."
-            except KeyboardInterrupt:
-                query = "exit"
-    except KeyboardInterrupt:
-        use_voice = False
-        return "Switching to typing mode. Please type your command below. Type 'voice' to switch back to voice mode. Type 'exit' to quit."
+def actions(query: str) -> str:
     if not query:
         return "I couldn't understand that, Please repeat"
+    
     # Wikipedia search
     elif 'wikipedia' in query:
         return wikipedia_search(query)
+    
     # Search on preffered search_engine
     elif 'search' in query:
         return search(query)
+    
     # Open ChatGPT
     elif 'open chat gpt' in query or 'open chatgpt' in query:
         webbrowser.open("https://chat.openai.com")
         return "Opening Chat GPT"
+    
     # Tell a joke
     elif 'joke' in query:
             joke = pyjokes.get_joke(language='en', category='neutral')
             return joke
+    
     # Open YouTube
     elif 'open youtube' in query:
         webbrowser.open("https://www.youtube.com")
         return "Opening YouTube"
+    
     # Open Google
     elif 'open google' in query:
         webbrowser.open("https://google.com")
         return "Opening Google"
+    
     # Open default browser
     elif 'open browser' in query:
         webbrowser.open(f"https://{search_engine}.com")
         return "Opening browser"
+    
     # Play music/songs
     elif query.startswith("play"):
         query = query.replace("play", "").replace("song", "").replace("music", "").strip()
@@ -77,13 +60,16 @@ def actions():
         else:
             webbrowser.open("https://music.youtube.com")
             return "Opening YouTube Music"
+        
     # Get current time
     elif 'time' in query:
         current_time = datetime.datetime.now().strftime("%I:%M %p")
         return f"The time is {current_time}"
+    
     # Get current date
     elif 'date' in query or 'today' in query:
         return get_current_date()
+    
     # AI-powered responses using Gemini
     else:
         # Check if API key is set
