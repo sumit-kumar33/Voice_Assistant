@@ -130,4 +130,4 @@ def actions():
             else:
                 speak(search(query))
                 logging.warning("Warning: GEMINI_API_KEY environment variable not found!")
-                logging.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't be able to use features that rely on Gemini.")
+                logging.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't be able to get AI responses.")
