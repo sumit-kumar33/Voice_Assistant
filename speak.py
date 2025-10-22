@@ -15,5 +15,8 @@ except Exception as e:
 # Converts text to speech
 def speak(audio):
     messages.info(f"{Name}: {audio}")
-    engine.say(audio)
-    engine.runAndWait()
+    try:
+        engine.say(audio)
+        engine.runAndWait()
+    except KeyboardInterrupt:
+        return

@@ -4,18 +4,48 @@ from speak import speak
 from take_command import take_command
 from get_current_date import get_current_date
 from gemini import gemini
-import wikipedia
+from search import search
 import webbrowser
 import os
 import pyjokes
 import urllib.parse
 import wikipedia
 import datetime
+
+#TODO: Refactor this function and make a dictionary mapping commands to functions for better scalability
+
+def get_text_command():
+    try:
+        return input("Type your command: ").strip().lower()
+    except EOFError:
+        return None
+
 def actions():
+    use_voice = True
     while True:
-        query = take_command()
-        # Logic for executing tasks based on query
-        # Wikipedia search
+        try:
+            if use_voice:
+                query = take_command()
+                if not query:
+                    speak("I couldn't understand that, Please repeat or press Ctrl+C to type.")
+                    continue
+            else:
+                try:
+                    query = get_text_command()
+                    if query == "voice":
+                        speak("Switching to voice mode. You can speak your command now. Press Ctrl+C to return to typing mode.")
+                        use_voice = True
+                        continue
+                    elif not query:
+                        speak("No input received. Please try again.")
+                        continue
+                except KeyboardInterrupt:
+                    query = "exit"
+        except KeyboardInterrupt:
+            speak("Switching to typing mode. Please type your command below. Type 'voice' to switch back to voice mode. Type 'exit' to quit.")
+            use_voice = False
+            continue
+
         if not query:
             speak("I couldn't understand that, Please repeat")
             continue
@@ -38,12 +68,7 @@ def actions():
 
         # Search on preffered search_engine
         elif 'search' in query:
-            speak(f"I found this on {search_engine}")
-            query = query.replace("search", "").replace(search_engine, "").strip()
-            if query:
-                webbrowser.open(f"https://{search_engine}.com/search?q=" + urllib.parse.quote_plus(query))
-            else:
-                speak("Please specify what you want to search for")
+            speak(search(query))
 
         # Open ChatGPT
         elif 'open chat gpt' in query or 'open chatgpt' in query:
@@ -58,7 +83,7 @@ def actions():
             except Exception:
                 speak("Sorry, I couldn't fetch a joke right now")
 
-        # Open YouTube (with rick roll easter egg)
+        # Open YouTube
         elif 'open youtube' in query:
             speak("Opening YouTube")
             webbrowser.open("https://www.youtube.com")
@@ -94,17 +119,15 @@ def actions():
 
         # Exit commands
         elif "exit" in query or "stop listening" in query or "goodbye" in query:
-            speak("Roger that! Goodbye!")
+            speak("Goodbye")
             break
 
         # AI-powered responses using Gemini
         else:
             # Check if API key is set
             if os.getenv('GEMINI_API_KEY'):
-                gemini(query)
+                speak(gemini(query))
             else:
-                speak(f"I found this on {search_engine}")
-                query = query.replace("search", "").replace(search_engine, "").strip()
-                webbrowser.open(f"https://{search_engine}.com/search?q=" + urllib.parse.quote_plus(query))
+                speak(search(query))
                 logging.warning("Warning: GEMINI_API_KEY environment variable not found!")
                 logging.info("Please set your GEMINI_API_KEY environment variable. Otherwise you won't be able to use features that rely on Gemini.")

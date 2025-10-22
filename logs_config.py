@@ -1,14 +1,14 @@
 import logging
 from config import *
-# Logging Configuration
 
+# Logging Configuration
 logging.basicConfig(
     level=logging.INFO,
     filename=f"{Name}.log",
     format='%(asctime)s %(levelname)s: %(message)s'
     )
 
-messages = logging.getLogger(__name__)
+messages: logging.Logger = logging.getLogger(__name__)
 
 handler = logging.FileHandler(f"{Name} messages.log")
 formatter = logging.Formatter("%(asctime)s: %(message)s")

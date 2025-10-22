@@ -4,23 +4,23 @@ from google.genai import types
 from speak import speak
 from logs_config import *
 
-# genai configuration it automatically takes "GEMINI-API-KEY" from environment variables
-client = genai.Client()
-config = types.GenerateContentConfig(
-    system_instruction=f"Your name is {Name} and you are a voice assistant. Try to keep responses within 300 characters.",
-)
-
-def gemini(query):
+# Gemini API call function
+def gemini(query: str) -> str:
+    # genai configuration it automatically takes "GEMINI-API-KEY" from environment variables
+    client = genai.Client()
+    config = types.GenerateContentConfig(
+        system_instruction=f"Your name is {Name} and you are a voice assistant. Try to keep responses within 300 characters.",
+    )
     try:
         instruction = "Please provide a brief and helpful response."
-        response = client.models.generate_content(
+        response: types.GenerateContentResponse = client.models.generate_content(
             model="gemini-2.0-flash-exp",
             config=config,
             contents=query + instruction
         )
         if response and response.text:
             # Clean up response text
-            cleaned_response = response.text.replace("*", "").replace("#", "").strip()
+            cleaned_response: str = response.text.replace("*", "").replace("#", "").strip()
             return cleaned_response
         else:
             return "Could not get a valid response from Gemini."

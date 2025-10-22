@@ -10,8 +10,6 @@ def main():
     try:
         speak(wishme())
         actions()
-    except KeyboardInterrupt:
-        speak("Goodbye!")
     except Exception as e:
         logging.exception(f"An unexpected error occurred: {e}")
         speak("An unexpected error occurred. Shutting down.")
