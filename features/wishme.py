@@ -9,4 +9,4 @@ def wishme():
         salutation = "Good Afternoon!"
     else:
         salutation = "Good Evening!"
-    return f"{salutation} I am {Name}. How may I help you today? You can speak *exit* anytime for me to exit and press Ctrl+C to switch to typing mode."
+    return f"{salutation} I am {Name}. How may I help you today? You can speak *exit* anytime for me to exit."
