@@ -10,18 +10,28 @@ This repository contains a simple Python voice assistant that uses the Gemini AP
 
 ## Features
 
-- Wake and greet: [`main.wishme`](main.py)
-- Speech-to-text input (Google Web Speech, default language: en-IN): [`main.take_command`](main.py)
-- Text-to-speech output (uses first available voice): [`main.speak`](main.py)
-- Actions and command routing loop: [`main.actions`](main.py)
+- Wake and greet: [`features.wishme.wishme`](features/wishme.py)
+
+- Speech-to-text input (Google Web Speech, default language: en-IN): [`take_command.py`](speech/take_command.py)
+
+- Text-to-speech output (uses first available voice): [`speak.py`](speech/speak.py)
+
+- Activation (wake) phrase
+  - The assistant now waits for a wake phrase before accepting a command. Say "hey Voice Assistant" or "voice assistant" to activate. See [`main.py`](main.py) and the greeting helper [`features.wishme.wishme`](features/wishme.py).
+  - You can include a command inline with the wake phrase (e.g. "hey Voice Assistant, open youtube") or say the wake phrase and then speak the command when prompted.
+
+- Actions and command routing loop: [`actions.py`](features/actions.py)
   - Wikipedia summaries
   - Web search via specified search engine (default: DuckDuckGo)
   - Open YouTube, Google, default browser
   - Open ChatGPT
   - “Play …” via YouTube Music
-  - Current time and date via [`main.get_current_date`](main.py)
-  - Exit using “exit”, “stop listening”, or “goodbye”
-- AI responses from Gemini (requires API key): [`main.client`](main.py)
+  - Current time and date via [`get_current_date.py`](features/get_current_date.py)
+
+- Graceful sleep / wake
+  - The assistant supports a sleep mode (enter with "stop listening" or "sleep") and wakes only on the activation phrase again.
+
+- AI responses from Gemini (requires API key): [`gemini.py`](features/gemini.py)
   - Model: gemini-2.0-flash-exp
   - System prompt includes the assistant name and instruction to keep the responses short.
 
@@ -48,17 +58,12 @@ python main.py
 
 ## Configuration
 
-Edit the top of [main.py](main.py):
+Edit the [config.py](config_files/config.py):
 
 - Assistant name (affects greetings, logs, and Gemini system prompt):
   - `Name = "Voice Assistant"`
 - Default search engine for “search”:
   - `search_engine = "duckduckgo"`
-- TTS backend and voice:
-  - Windows uses `pyttsx3.init('sapi5')` and sets the first voice: `voices[0].id`
-  - To change voices, adjust the selected index or choose a different voice ID
-- Speech recognition locale:
-  - Default is `r.recognize_google(..., language='en-in')`. Change to e.g. `en-US` as and when needed.
 
 ## Logging
 
@@ -82,7 +87,7 @@ Edit the top of [main.py](main.py):
 ## Cross-OS limitations and notes
 
 - Text-to-speech backend:
-  - The code calls `pyttsx3.init('sapi5')` which is Windows-specific. On macOS use `'nsss'`, on many Linux systems use `'espeak'`. If you run on a non-Windows OS, change the backend when initializing the engine in [`main.py`](main.py).
+  - The code calls `pyttsx3.init('sapi5')` which is Windows-specific. On macOS use `'nsss'`, on many Linux systems use `'espeak'`. If you run on a non-Windows OS, change the backend when initializing the engine in [`speak.py`](speech/speak.py).
 - Voice selection:
   - `engine.getProperty('voices')` returns a list; setting `engine.setProperty('voice', voice)` may be incorrect if `voice` is the list. Behavior differs by OS and available voice engines.
 - PyAudio / microphone:
@@ -94,7 +99,7 @@ Edit the top of [main.py](main.py):
 - Speech recognition:
   - `speech_recognition.Recognizer().recognize_google(...)` uses Google’s web API and requires network access; rate limits may apply.
 - Timing and noise:
-  - The recognizer uses a `pause_threshold` of 1.5s. In noisy environments or with low-volume mics, adjust thresholds in [`main.take_command`](main.py).
+  - The recognizer uses a `pause_threshold` of 1.5s. In noisy environments or with low-volume mics, adjust thresholds in [`take_command.py`](speech/take_command.py).
 - Browser behavior:
   - `webbrowser.open(...)` uses the system default browser; results may vary across environments or on headless servers.
 - Gemini & privacy:
@@ -103,7 +108,7 @@ Edit the top of [main.py](main.py):
 ## Troubleshooting
 
 - Speech not recognized:
-  - Check microphone permissions and input device; consider increasing `pause_threshold` in [`main.take_command`](main.py).
+  - Check microphone permissions and input device; consider increasing `pause_threshold` in [`take_command.py`](speech/take_command.py).
 - TTS fails on macOS/Linux:
   - Switch the `pyttsx3` backend from `'sapi5'` to the OS-appropriate backend.
 - PyAudio installation fails:
@@ -127,10 +132,11 @@ Edit the top of [main.py](main.py):
 ## Where to look in the code
 
 - Entry point: [`main.main`](main.py)
-- Greeting and startup: [`main.wishme`](main.py)
-- Speech/TTS helpers: [`main.speak`](main.py), [`main.take_command`](main.py)
-- Action routing + Gemini usage: [`main.actions`](main.py), [`main.client`](main.py)
-- Date helper: [`main.get_current_date`](main.py)
+- Greeting and startup: [`wishme.py`](features/wishme.py)
+- Speech/TTS helpers: [`speak.py`](speech/speak.py), [`take_command.py`](speech/take_command.py)
+- Action routing: [`actions.py`](features/actions.py)
+- Gemini usage: [`gemini.py`](features/gemini.py)
+- Date helper: [`get_current_date.py`](features/get_current_date.py)
 
 ## Limitations
 
@@ -139,5 +145,3 @@ Edit the top of [main.py](main.py):
 - Real-time performance depends on microphone quality, network latency, and Gemini response time.
 - Not hardened for production: limited error handling and concurrency; running long sessions may surface unhandled exceptions.
 - Possible costs from Gemini usage depending on your account and model.
-
-For code details, inspect [main.py](main.py) and the dependency list in [requirements.txt](requirements.txt).
