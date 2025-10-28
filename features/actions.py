@@ -15,11 +15,9 @@ import datetime
 #TODO: Refactor this function and make a dictionary mapping commands to functions for better scalability
 
 def actions(query: str) -> str:
-    if not query:
-        return "I couldn't understand that, Please repeat"
     
     # Wikipedia search
-    elif 'wikipedia' in query:
+    if 'wikipedia' in query:
         return wikipedia_search(query)
     
     # Search on preffered search_engine
