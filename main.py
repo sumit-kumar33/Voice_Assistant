@@ -5,11 +5,9 @@ from speech.take_command import take_command
 from speech.speak import speak
 
 def main():
-    logging.info("=" * 50 + f"{Name} is starting" + "=" * 50)
-    messages.info("=" * 50 + f"{Name} is starting" + "=" * 50)
+    startup_log()
 
     flag = False  # start in sleep mode
-
     while True:
         activation = take_command()
         logging.info(f"You (in sleep mode): {activation}")
