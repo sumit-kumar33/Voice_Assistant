@@ -10,14 +10,14 @@ This repository contains a simple Python voice assistant that uses the Gemini AP
 
 ## Features
 
-- Wake and greet: [`features.wishme.wishme`](features/wishme.py)
+- Wake and greet: [`features.wishme`](features/wishme.py)
 
 - Speech-to-text input (Google Web Speech, default language: en-IN): [`take_command.py`](speech/take_command.py)
 
 - Text-to-speech output (uses first available voice): [`speak.py`](speech/speak.py)
 
 - Activation (wake) phrase
-  - The assistant now waits for a wake phrase before accepting a command. Say "hey Voice Assistant" or "voice assistant" to activate. See [`main.py`](main.py) and the greeting helper [`features.wishme.wishme`](features/wishme.py).
+  - The assistant now waits for a wake phrase before accepting a command. Say "hey Voice Assistant" or "voice assistant" to activate. See [`main.py`](main.py) and the greeting helper [`features.wishme`](features/wishme.py).
   - You can include a command inline with the wake phrase (e.g. "hey Voice Assistant, open youtube") or say the wake phrase and then speak the command when prompted.
 
 - Actions and command routing loop: [`actions.py`](features/actions.py)
