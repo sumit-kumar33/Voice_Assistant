@@ -13,7 +13,7 @@ def main():
         logging.info(f"You (in sleep mode): {activation}")
         if activation:
             activation = activation.lower().strip()
-            if "hey " + Name.lower() in activation or Name.lower() in activation:
+            if "hey " + Name.lower() in activation or Name.lower() in activation: # wake word detected: "Hey {Name}", "{Name}"
                 flag = True # wake up
 
         while flag:
