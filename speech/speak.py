@@ -7,7 +7,7 @@ engine = pyttsx3.init('sapi5')
 voices = engine.getProperty('voices')
 try:
     if voices:
-        # set to first available voice id (safe)
+        # set to first available voice id
        engine.setProperty('voice', voices[0].id)
 except Exception as e:
     logging.exception("Failed to set TTS voice property")

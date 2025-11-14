@@ -8,7 +8,7 @@ def take_command():
         audio = r.listen(source)
     try:
         logging.info("Recognizing...")
-        query = r.recognize_google(audio, language='en-in') # pyright: ignore[reportAttributeAccessIssue]
+        query = r.recognize_google(audio, language='en-in')
     except Exception:
         logging.exception("Failed to run take_command() function")
         return None
