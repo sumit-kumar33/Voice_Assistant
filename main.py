@@ -14,7 +14,7 @@ def main():
         if activation:
             activation = activation.lower().strip()
             if "hey " + Name.lower() in activation or Name.lower() in activation:
-                flag = True
+                flag = True # wake up
 
         while flag:
             speak(wishme())
@@ -28,7 +28,7 @@ def main():
                             speak("Goodbye")
                             return
                         elif "stop listening" in query or "sleep" in query:
-                            flag = False
+                            flag = False # go to sleep mode
                             speak("Going to sleep mode. Say 'Hey " + Name + "' to wake me up.")
                             break
                         else:
@@ -37,7 +37,7 @@ def main():
                         speak("I couldn't understand that, Please repeat")
                 except KeyboardInterrupt:
                     # treat Ctrl+C while active as "stop listening" (sleep)
-                    flag = False
+                    flag = False # go to sleep mode
                     speak("Going to sleep mode. Say 'Hey " + Name + "' to wake me up.")
                     break
                 except Exception as e:
