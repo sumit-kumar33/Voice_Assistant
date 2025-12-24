@@ -145,3 +145,7 @@ Edit the [config.py](config_files/config.py):
 - Real-time performance depends on microphone quality, network latency, and Gemini response time.
 - Not hardened for production: limited error handling and concurrency; running long sessions may surface unhandled exceptions.
 - Possible costs from Gemini usage depending on your account and model.
+
+
+
+THuis is a change
